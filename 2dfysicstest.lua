@@ -174,7 +174,7 @@ local drone = body.new{
             calcThrusterForces=function(self,target,targetAng,dt)
                 if #self.thrusters > 0 then
                     local targetVel = (self.mass*(target-self.pos-self.vel)/dt)
-                    local targetOmega = (self.mmoi/self.mass*(targetAng-self.rot-self.omega)/dt)
+                    local targetOmega = (self.mmoi*(targetAng-self.rot-self.omega)/dt)
                     local newThrusts = {}
                     for i=1,#self.thrusters do
                         newThrusts[i] = ((targetVel-self.force)/#self.thrusters)/(#self.thrusters[i].pos)
