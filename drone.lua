@@ -23,7 +23,7 @@ r.texture.bg = {0,0.5,0.5}
 
 local mousepos = nil
 local gravity = 50
-local fps = 50
+local fps = 20
 
 local posQueue = {}
 local posQueueLen = fps
@@ -297,7 +297,7 @@ local targetAng = 0
 
 local bh = handler.new{
     fps=fps,
-    maxFrameT=0.5,
+    maxFrameT=0.8,
     bodies={
         drone
         -- ,
@@ -316,7 +316,7 @@ local bh = handler.new{
         if state == "sim" then
             stopSim:render()
         end
-        r:optimizeColors(100)
+        r:optimizeColors(20)
         r:render()
         if state == "sim" then
             stopSim:renderText()
