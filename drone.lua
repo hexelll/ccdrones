@@ -28,7 +28,7 @@ local fps = 20
 local posQueue = {}
 local posQueueLen = 0
 local particles = {}
-local particleAmount = 2
+local particleAmount = 3
 local state = "edit"
 
 local function mkbutton(text,pos,width,height,color)
@@ -348,7 +348,7 @@ local bh = handler.new{
             posQueue[1] = b.pos
             for _,thruster in pairs(b.thrusters) do
                 for i =1,particleAmount do
-                    local v = -100*thruster.thrust/b.maxThrust+vec2((math.random()*2-1)*20,(math.random()*2-1)*20)
+                    local v = -50*thruster.thrust/b.maxThrust+vec2((math.random()*2-1)*2,(math.random()*2-1)*2)
                     particles[#particles+1] = {
                         pos=b:transform(thruster.pos),
                         vel=v,
