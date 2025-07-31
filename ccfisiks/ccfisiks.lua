@@ -406,25 +406,36 @@ function rigidbody2Dhandler:render()
 end
 
 function rigidbody2Dhandler:run()
+    local traccumulator = 0
     local taccumulator = 0
     local dt = 1/self.fps
     self:integrate(dt)
     local lastT = os.clock()
     while true do
-        self:clear_()
         local currentT = os.clock()
+        traccumulator = traccumulator+currentT-lastT
+        if traccumulator > 1/20 then
+            traccumulator=0
+            self:clear_()
+        end
         taccumulator = taccumulator+currentT-lastT
-        lastT = currentT
         taccumulator = math.min(self.maxFrameT,taccumulator)
         while taccumulator > dt do
             self:onPhysicsTick(dt)
             self:integrate(dt)
-            self:resolveCollisions()
+            --self:resolveCollisions()
             
             taccumulator = taccumulator-dt
         end
-        self:render()
-        self:render_(currentT-lastT)
+        --if traccumulator > 1/20 then
+            self:render()
+            self:render_(currentT-lastT)
+        --end
+        term.setCursorPos(1,1)
+        term.setBackgroundColor(colors.white)
+        term.setTextColor(colors.black)
+        term.write("frame time:"..(currentT-lastT))
+        lastT = currentT
         sleep()
     end
 end

@@ -91,6 +91,7 @@ function renderer.new(tex)
     local o = deepcpy(renderer)
     o.texture = tex or texture.fromScreen()
     o.texture:updateBuffer()
+    o.colMap = {}
     return o
 end
 
@@ -221,7 +222,7 @@ function texture:fragshader(shaders)
     local x = self.size.x
     local y = self.size.y
     local ratio = (x/y)
-    for u=0,1,1/(x*ratio) do
+    for u=0,1,1/(x) do
         for v=0,1,1/y do
             local pixel = self:getPixel(u*x+1,v*y+1)
             for _,shader in pairs(shaders) do
@@ -455,9 +456,21 @@ function renderer.calcBaricentricCoords(a,b,c,p)
     return bary
 end
 
-function renderer.toTermCol(col)
+function renderer:toTermCol(col)
     local mind = math.huge
     local bestmatch = colors.black
+    for i,c in pairs(self.colMap) do
+        local ok = true
+        for j=1,3 do
+            if c[1][j] ~= col[j] then
+                ok = false
+                break
+            end
+        end
+        if ok then
+            return c[2]
+        end
+    end
     for i=1,#_colors do
         local v = {term.getPaletteColor(_colors[i])}
         --print(textutils.serialize(v))
@@ -467,6 +480,7 @@ function renderer.toTermCol(col)
             bestmatch = _colors[i]
         end
     end
+    self.colMap[#self.colMap+1] = {col,bestmatch}
     return bestmatch
 end
 
@@ -623,6 +637,7 @@ function renderer:optimizeColors(n,k)
     end
     local wi = argmin(dwhite)
     newcolors[1],newcolors[wi] = newcolors[wi],newcolors[1]
+    self.colMap = {}
     for i=1,N do
         term.setPaletteColor(_colors[i],table.unpack(newcolors[i]))
     end
@@ -632,7 +647,19 @@ function renderer:render()
     for i = 1,self.texture.size.x do
         for j = 1,self.texture.size.y do
             local p = self.texture.pixelbuffer[i][j]
-            local col = self.toTermCol(p.rgb)
+            -- local ok = true
+            -- for i=1,3 do
+            --     if p.rgb[i] ~= self.texture.bg[i] then
+            --         ok = false
+            --         break
+            --     end
+            -- end
+            -- local col
+            -- if ok then
+            --     col = colors.black
+            -- else
+                local col = self:toTermCol(p.rgb)
+            --end
             self.b:set_pixel(i,j,col)
         end
     end

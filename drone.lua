@@ -26,7 +26,7 @@ local gravity = 50
 local fps = 20
 
 local posQueue = {}
-local posQueueLen = fps
+local posQueueLen = 0
 local particles = {}
 local particleAmount = 2
 local state = "edit"
@@ -46,8 +46,8 @@ local function mkbutton(text,pos,width,height,color)
         end
     end
     function button:renderText()
-        term.setBackgroundColor(r.toTermCol(self.color))
-        term.setTextColor(r.toTermCol({1-self.color[1],1-self.color[2],1-self.color[3]}))
+        term.setBackgroundColor(r:toTermCol(self.color))
+        term.setTextColor(r:toTermCol({1-self.color[1],1-self.color[2],1-self.color[3]}))
         term.setCursorPos(math.ceil(self.pos.x/2+self.width/4-#self.text/2+0.4999),math.ceil(self.pos.y/3+self.height/6+0.4999)-1)
         term.write(self.text)
     end
@@ -93,21 +93,21 @@ local function renderBody(color,colorColliding)
             local linecol1 = function(x,y,z,n)
                 local vec  = utils.vec3.new()
                 local uvw = r.calcBaricentricCoords(vec.from(t1[1]),vec.from(t1[2]),vec.from(t1[3]),utils.vec(x,y,z))
-                local u = 1-((((1-uvw.z)-uvw.x)))
+                -- local u = 1-((((1-uvw.z)-uvw.x)))
                 local v = ((1-uvw.z)-uvw.y)
                 v=math.floor(v*4)/4
                 return {0.5*math.max(0.2,1-v),0.5*math.max(0.2,1-v),0.5*math.max(0.2,1-v)}
-                --return {uvw.x,uvw.y,uvw.z}
+                --return {0.5,0.5,0.5}
             end
             r.texture:drawBuffer(r:getTriangleBuffer(t1[1],t1[2],t1[3],linecol1))
             local linecol2 = function(x,y,z,n)
                 local vec  = utils.vec3.new()
                 local uvw = r.calcBaricentricCoords(vec.from(t2[1]),vec.from(t2[2]),vec.from(t2[3]),utils.vec(x,y,z))
-                local u = ((1-uvw.z)-uvw.x)
+                -- local u = ((1-uvw.z)-uvw.x)
                 local v = 1-(((1-uvw.z)-uvw.y))
                 v=math.floor(v*4)/4
                 return {0.5*math.max(0.2,1-v),0.5*math.max(0.2,1-v),0.5*math.max(0.2,1-v)}
-                --return {uvw.x,uvw.y,uvw.z}
+                --return {0.5,0.5,0.5}
             end
             r.texture:drawBuffer(r:getTriangleBuffer(t2[1],t2[2],t2[3],linecol2))
         end
@@ -204,7 +204,7 @@ local drone = body.new{
                     end
                     local k1 = 800/(#self.thrusters)
                     local k2 = 800/(#self.thrusters)
-                    local maxi = math.max(1000/(#self.thrusters),100)
+                    local maxi = math.max(100/(#self.thrusters),50)
                     local epslin = 0.01
                     local epsang = 0.001
                     local dolin = true
@@ -237,41 +237,43 @@ local drone = body.new{
                         local k = 2*(self.omega+dt/self.mmoi*(self.torque+thrustSum)-targetOme)*dt/self.mmoi
                         return vec2(k*-r.y,k*r.x)
                     end
-                    for i=1,maxi do
-                        if not dolin and not doang then
-                            break
-                        end
-                        if i%2 == 0 and dolin then
-                            local slope = dcostLin(targetVel)
-                            if math.abs(slope.x) < epslin and math.abs(slope.y) < epslin then
-                                dolin = false
+                    if n > 0 then
+                        for i=1,maxi do
+                            if not dolin and not doang then
+                                break
                             end
-                            for i=1,n do
-                                newThrusts[i] = (newThrusts[i]-slope*k1)
-                            end
-                            local nslope = dcostLin(targetVel)
-                            if (nslope.x > 0 and slope.x < 0) or (nslope.x < 0 and slope.x > 0) then
-                                k1 = k1*0.8
-                            end
-                        elseif doang then
-                            local slopeMean = 0
-                            for i=1,n do
-                                local slope = dcostAng(targetOmega,self.thrusters[i].pos)
-                                slopeMean = slopeMean + slope
-                                newThrusts[i] = (newThrusts[i]-slope*k2)
-                            end
-                            slopeMean = slopeMean/n
-                            if math.abs(slopeMean.x) < epsang and math.abs(slopeMean.y) < epsang then
-                                doang = false
-                            end
-                            local nslopeMean = 0
-                            for i=1,n do
-                                local slope = dcostAng(targetOmega,self.thrusters[i].pos)
-                                nslopeMean = nslopeMean + slope
-                            end
-                            local nslope = nslopeMean/n
-                            if (nslope.x > 0 and slopeMean.x < 0) or (nslope.x < 0 and slopeMean.x > 0) then
-                                k2 = k2*0.8
+                            if i%2 == 0 and dolin then
+                                local slope = dcostLin(targetVel)
+                                if math.abs(slope.x) < epslin and math.abs(slope.y) < epslin then
+                                    dolin = false
+                                end
+                                for i=1,n do
+                                    newThrusts[i] = (newThrusts[i]-slope*k1)
+                                end
+                                local nslope = dcostLin(targetVel)
+                                if (nslope.x > 0 and slope.x < 0) or (nslope.x < 0 and slope.x > 0) then
+                                    k1 = k1*0.8
+                                end
+                            elseif doang then
+                                local slopeMean = 0
+                                for i=1,n do
+                                    local slope = dcostAng(targetOmega,self.thrusters[i].pos)
+                                    slopeMean = slopeMean + slope
+                                    newThrusts[i] = (newThrusts[i]-slope*k2)
+                                end
+                                slopeMean = slopeMean/n
+                                if math.abs(slopeMean.x) < epsang and math.abs(slopeMean.y) < epsang then
+                                    doang = false
+                                end
+                                local nslopeMean = 0
+                                for i=1,n do
+                                    local slope = dcostAng(targetOmega,self.thrusters[i].pos)
+                                    nslopeMean = nslopeMean + slope
+                                end
+                                local nslope = nslopeMean/n
+                                if (nslope.x > 0 and slopeMean.x < 0) or (nslope.x < 0 and slopeMean.x > 0) then
+                                    k2 = k2*0.8
+                                end
                             end
                         end
                     end
@@ -297,7 +299,7 @@ local targetAng = 0
 
 local bh = handler.new{
     fps=fps,
-    maxFrameT=0.8,
+    maxFrameT=0.2,
     bodies={
         drone
         -- ,
@@ -310,7 +312,6 @@ local bh = handler.new{
         --     immovable=true,
         -- }
     },
-    drag=0.95,
     clear_=function(self)r.texture:clear()end,
     render_=function(self,dt)
         if state == "sim" then
@@ -328,7 +329,7 @@ local bh = handler.new{
             b.colliding = false
             b.force.y = b.force.y+b.mass*gravity
             if b.thrusters then
-                if tsum > 0.03 then
+                if tsum > 0 then
                     local target = mousepos or vec2(r.texture.size.x/2,r.texture.size.y/2)
                     b:calcThrusterForces(target,targetAng,tsum)
                     tsum = 0
@@ -347,7 +348,7 @@ local bh = handler.new{
             posQueue[1] = b.pos
             for _,thruster in pairs(b.thrusters) do
                 for i =1,particleAmount do
-                    local v = -100*thruster.thrust/b.maxThrust+vec2(math.random()*5,math.random()*5)
+                    local v = -100*thruster.thrust/b.maxThrust+vec2((math.random()*2-1)*20,(math.random()*2-1)*20)
                     particles[#particles+1] = {
                         pos=b:transform(thruster.pos),
                         vel=v,
@@ -358,7 +359,7 @@ local bh = handler.new{
             local offset = 0
             for i,particle in pairs(particles) do
                 i=i-offset
-                particle.vel = particle.vel*0.8
+                particle.vel = particle.vel*0.7
                 particle.pos = particle.pos+particle.vel*dt
                 if #particle.vel < 0.1 then
                     offset = offset+1
@@ -368,11 +369,11 @@ local bh = handler.new{
                 end
             end
         end
-        local collisions = self:collisions()
-        for _,col in pairs(collisions) do
-            col[1].colliding = true
-            col[2].colliding = true
-        end
+        -- local collisions = self:collisions()
+        -- for _,col in pairs(collisions) do
+        --     col[1].colliding = true
+        --     col[2].colliding = true
+        -- end
     end,
     -- onCollision=function(self,A,B,normal,depth,contained,flip,impulse)
     --     local b = flip and A or B
