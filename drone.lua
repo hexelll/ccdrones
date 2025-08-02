@@ -96,7 +96,7 @@ local function renderBody(color,colorColliding)
                 -- local u = 1-((((1-uvw.z)-uvw.x)))
                 local v = ((1-uvw.z)-uvw.y)
                 v=math.floor(v*4)/4
-                return {0.5*math.max(0.2,1-v),0.5*math.max(0.2,1-v),r.mix(0.5*math.max(0.2,1-v),1-y/r.size.y,0.5)}
+                return {0.5*math.max(0.2,1-v),0.5*math.max(0.2,1-v),r.mix(0.5*math.max(0.2,1-v),1-y/r.texture.size.y,0.5)}
                 --return {0.5,0.5,0.5}
             end
             r.texture:drawBuffer(r:getTriangleBuffer(t1[1],t1[2],t1[3],linecol1))
@@ -106,7 +106,7 @@ local function renderBody(color,colorColliding)
                 -- local u = ((1-uvw.z)-uvw.x)
                 local v = 1-(((1-uvw.z)-uvw.y))
                 v=math.floor(v*4)/4
-                return {0.5*math.max(0.2,1-v),0.5*math.max(0.2,1-v),r.mix(0.5*math.max(0.2,1-v),1-y/r.size.y,0.5)}
+                return {0.5*math.max(0.2,1-v),0.5*math.max(0.2,1-v),r.mix(0.5*math.max(0.2,1-v),1-y/r.texture.size.y,0.5)}
                 --return {0.5,0.5,0.5}
             end
             r.texture:drawBuffer(r:getTriangleBuffer(t2[1],t2[2],t2[3],linecol2))
