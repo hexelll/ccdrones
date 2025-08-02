@@ -100,7 +100,7 @@ local function renderBody(color,colorColliding)
                 -- local u = 1-((((1-uvw.z)-uvw.x)))
                 local v = ((1-uvw.z)-uvw.y)
                 v=math.floor(v*4)/4
-                local c = interpolate(0.5*math.max(0.2,1-v),1-(y-self.pos.y)/r.texture.size.y,0.7)
+                local c = interpolate(0.5*math.max(0.2,1-v),1-(y-self.pos.y)/r.texture.size.y,0.6)
                 c=math.min(c,1)
                 return {c,c,c}
                 --return {0.5,0.5,0.5}
@@ -112,7 +112,7 @@ local function renderBody(color,colorColliding)
                 -- local u = ((1-uvw.z)-uvw.x)
                 local v = 1-(((1-uvw.z)-uvw.y))
                 v=math.floor(v*4)/4
-                local c = interpolate(0.5*math.max(0.2,1-v),1-(y-self.pos.y)/r.texture.size.y,0.7)
+                local c = interpolate(0.5*math.max(0.2,1-v),1-(y-self.pos.y)/r.texture.size.y,0.6)
                 c=math.min(c,1)
                 return {c,c,c}
                 --return {0.5,0.5,0.5}
