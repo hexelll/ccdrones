@@ -65,6 +65,10 @@ local startSim=mkbutton(s,vec2(r.texture.size.x/2-#s-1,1),#s*2+2,8,{1,1,1})
 s = "Stop Sim"
 local stopSim=mkbutton(s,vec2(r.texture.size.x/2-#s-1,1),#s*2+2,8,{1,0,0})
 
+local function interpolate(a,b,p)
+    return a*p+b*(1-p)
+end
+
 local function renderBody(color,colorColliding)
     return function(self)
         local prev = #self.currentPoints
@@ -152,10 +156,6 @@ local function renderBody(color,colorColliding)
             r.texture:setPixel(point.x,point.y,{rgb=r.mix({0.3,1,1},r.texture.bg,k)})
         end
     end
-end
-
-local function interpolate(a,b,p)
-    return a*p+b*(1-p)
 end
 
 local drone = body.new{
